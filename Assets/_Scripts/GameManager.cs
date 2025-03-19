@@ -1,10 +1,13 @@
 ﻿using UnityEngine;
+using TMPro;
 
 public class GameManager : SingletonMonoBehavior<GameManager>
 {
     [SerializeField] private int maxLives = 3;
     [SerializeField] private Ball ball;
     [SerializeField] private Transform bricksContainer;
+    [SerializeField] private TMP_Text livesText;
+    [SerializeField] private GameObject gameOverCanvas;
 
     private int currentBrickCount;
     private int totalBrickCount;
@@ -15,6 +18,8 @@ public class GameManager : SingletonMonoBehavior<GameManager>
         ball.ResetBall();
         totalBrickCount = bricksContainer.childCount;
         currentBrickCount = bricksContainer.childCount;
+        UpdateLivesUI();
+        gameOverCanvas.SetActive(false); 
     }
 
     private void OnDisable()
@@ -29,19 +34,63 @@ public class GameManager : SingletonMonoBehavior<GameManager>
 
     public void OnBrickDestroyed(Vector3 position)
     {
-        // fire audio here
-        // implement particle effect here
-        // add camera shake here
+        if (bricksContainer == null) return;
+
         currentBrickCount--;
         Debug.Log($"Destroyed Brick at {position}, {currentBrickCount}/{totalBrickCount} remaining");
-        if(currentBrickCount == 0) SceneHandler.Instance.LoadNextScene();
+
+        if (currentBrickCount == 0) 
+        {
+            SceneHandler.Instance.LoadNextScene();
+        }
     }
 
     public void KillBall()
     {
         maxLives--;
-        // update lives on HUD here
-        // game over UI if maxLives < 0, then exit to main menu after delay
-        ball.ResetBall();
+        UpdateLivesUI();
+        
+        Debug.Log($"Lives remaining: {maxLives}");
+
+        if (maxLives <= 0)
+        {
+            ball.ResetBall();
+            ShowGameOverScreen();
+        }
+        else
+        {
+            ball.ResetBall();
+        }
+    }
+
+    private void ShowGameOverScreen()
+    {
+        if (gameOverCanvas != null)
+        {
+            gameOverCanvas.SetActive(true); 
+            Invoke("ReturnToMainMenu", 1.5f); 
+        }
+        else
+        {
+            Debug.LogError("Game Over Canvas is not assigned in the Inspector.");
+            ReturnToMainMenu();
+        }
+    }
+
+    private void UpdateLivesUI()
+    {
+        if (livesText != null)
+        {
+            livesText.text = $"Lives: {Mathf.Max(maxLives, 0)}";
+        }
+    }
+
+    private void ReturnToMainMenu()
+    {
+        if (gameOverCanvas != null)
+        {
+            gameOverCanvas.SetActive(false);
+        }
+        SceneHandler.Instance.LoadMenuScene();
     }
 }
