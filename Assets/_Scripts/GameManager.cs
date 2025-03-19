@@ -7,10 +7,12 @@ public class GameManager : SingletonMonoBehavior<GameManager>
     [SerializeField] private Ball ball;
     [SerializeField] private Transform bricksContainer;
     [SerializeField] private TMP_Text livesText;
+    [SerializeField] private TMP_Text scoreText;
     [SerializeField] private GameObject gameOverCanvas;
 
     private int currentBrickCount;
     private int totalBrickCount;
+    private int score = 0;
 
     private void OnEnable()
     {
@@ -19,7 +21,8 @@ public class GameManager : SingletonMonoBehavior<GameManager>
         totalBrickCount = bricksContainer.childCount;
         currentBrickCount = bricksContainer.childCount;
         UpdateLivesUI();
-        gameOverCanvas.SetActive(false); 
+        UpdateScoreUI();
+        gameOverCanvas.SetActive(false);
     }
 
     private void OnDisable()
@@ -37,9 +40,10 @@ public class GameManager : SingletonMonoBehavior<GameManager>
         if (bricksContainer == null) return;
 
         currentBrickCount--;
-        Debug.Log($"Destroyed Brick at {position}, {currentBrickCount}/{totalBrickCount} remaining");
+        score++;
+        UpdateScoreUI();
 
-        if (currentBrickCount == 0) 
+        if (currentBrickCount == 0)
         {
             SceneHandler.Instance.LoadNextScene();
         }
@@ -49,8 +53,6 @@ public class GameManager : SingletonMonoBehavior<GameManager>
     {
         maxLives--;
         UpdateLivesUI();
-        
-        Debug.Log($"Lives remaining: {maxLives}");
 
         if (maxLives <= 0)
         {
@@ -67,12 +69,11 @@ public class GameManager : SingletonMonoBehavior<GameManager>
     {
         if (gameOverCanvas != null)
         {
-            gameOverCanvas.SetActive(true); 
-            Invoke("ReturnToMainMenu", 1.5f); 
+            gameOverCanvas.SetActive(true);
+            Invoke("ReturnToMainMenu", 1.5f);
         }
         else
         {
-            Debug.LogError("Game Over Canvas is not assigned in the Inspector.");
             ReturnToMainMenu();
         }
     }
@@ -82,6 +83,14 @@ public class GameManager : SingletonMonoBehavior<GameManager>
         if (livesText != null)
         {
             livesText.text = $"Lives: {Mathf.Max(maxLives, 0)}";
+        }
+    }
+
+    private void UpdateScoreUI()
+    {
+        if (scoreText != null)
+        {
+            scoreText.text = $"Score: {score}";
         }
     }
 
